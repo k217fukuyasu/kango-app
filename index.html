@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMCH 看護部アプリ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A5%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #ddd8cb;
+    --ink: #262218;
+    --muted: #6b6355;
+    --muted-2: #948a78;
+    --shadow-1: 0 1px 2px rgba(38, 34, 24, 0.06);
+    --shadow-2: 0 14px 34px -18px rgba(38, 34, 24, 0.32);
+
+    --teal: #2f7c6e;
+    --teal-bg: #e5f2ee;
+    --teal-border: #bfe0d5;
+    --indigo: #5b4e9e;
+    --indigo-bg: #eae6f8;
+    --indigo-border: #d3cbef;
+
+    --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --font-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #17150f;
+      --surface: #201c15;
+      --border: #38311f;
+      --ink: #f1ece1;
+      --muted: #b7ac97;
+      --muted-2: #8c8170;
+      --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-2: 0 16px 34px -18px rgba(0, 0, 0, 0.6);
+
+      --teal: #6fc2ab;
+      --teal-bg: #163027;
+      --teal-border: #26473b;
+      --indigo: #a297e6;
+      --indigo-bg: #2a2449;
+      --indigo-border: #3c3560;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #17150f;
+    --surface: #201c15;
+    --border: #38311f;
+    --ink: #f1ece1;
+    --muted: #b7ac97;
+    --muted-2: #8c8170;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 16px 34px -18px rgba(0, 0, 0, 0.6);
+
+    --teal: #6fc2ab;
+    --teal-bg: #163027;
+    --teal-border: #26473b;
+    --indigo: #a297e6;
+    --indigo-bg: #2a2449;
+    --indigo-border: #3c3560;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 20px 60px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--muted-2);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(24px, 4vw, 32px);
+    margin: 0 0 10px;
+  }
+
+  .lead {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0 0 34px;
+    max-width: 46em;
+  }
+
+  .cards {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 620px) {
+    .cards { grid-template-columns: 1fr 1fr; }
+  }
+
+  .app-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow-1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .app-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
+
+  .app-card.is-teal { border-top: 4px solid var(--teal); }
+  .app-card.is-indigo { border-top: 4px solid var(--indigo); }
+
+  .app-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .is-teal .app-icon { background: var(--teal-bg); border: 1px solid var(--teal-border); }
+  .is-indigo .app-icon { background: var(--indigo-bg); border: 1px solid var(--indigo-border); }
+
+  .app-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    margin: 0 0 6px;
+  }
+
+  .app-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0 0 14px;
+  }
+
+  .app-cta {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .is-teal .app-cta { color: var(--teal); }
+  .is-indigo .app-cta { color: var(--indigo); }
+
+  .foot {
+    margin-top: 40px;
+    font-size: 12.5px;
+    color: var(--muted-2);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">TMCH 看護部</span>
+  <h1>看護部アプリ</h1>
+  <p class="lead">使いたいボードを選んでください。ブックマークしておくと、次回から1タップで開けます。</p>
+
+  <div class="cards">
+    <a class="app-card is-teal" href="status.html">
+      <div class="app-icon">🚪</div>
+      <div class="app-name">看護部長室 在室状況ボード</div>
+      <p class="app-desc">部長の在室・面談中・離席・不在をリアルタイムで確認。相談待ちリストにも登録できます。</p>
+      <div class="app-cta">開く →</div>
+    </a>
+
+    <a class="app-card is-indigo" href="attendance.html">
+      <div class="app-icon">🗓️</div>
+      <div class="app-name">師長 出勤状況ボード</div>
+      <p class="app-desc">師長25人が各自スマホから本日の出勤・休みを入力し、全員の状況を確認できます。</p>
+      <div class="app-cta">開く →</div>
+    </a>
+  </div>
+
+  <p class="foot">TMCH 看護部内でのご利用を想定しています。</p>
+</div>
+</body>
+</html>

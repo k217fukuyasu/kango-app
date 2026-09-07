@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>師長出勤ボード</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%93%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&amp;family=Noto+Sans+JP:wght@400;500;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --surface-2: #ede9df;
+    --border: #ddd6c6;
+    --ink: #262218;
+    --muted: #6b6355;
+    --muted-2: #948a78;
+    --accent: #5b4e9e;
+    --accent-strong: #453a82;
+    --accent-ink: #ffffff;
+    --accent-soft: #eae6f8;
+    --focus: #5b4e9e;
+
+    --present-bg: #e5f2e6;
+    --present-fg: #1f6b3d;
+    --present-strong: #2f8f53;
+    --present-border: #bfe0c2;
+
+    --off-bg: #e8eef5;
+    --off-fg: #33526e;
+    --off-strong: #5c7a99;
+    --off-border: #c9d8e6;
+
+    --pending-fg: #8a8272;
+    --pending-border: #c9c1ae;
+
+    --shadow-1: 0 1px 2px rgba(38, 34, 24, 0.06);
+    --shadow-2: 0 10px 28px -14px rgba(38, 34, 24, 0.28);
+
+    --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --font-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #17130e;
+      --surface: #211b14;
+      --surface-2: #29221a;
+      --border: #3a3122;
+      --ink: #f1ece1;
+      --muted: #b7ac97;
+      --muted-2: #8c8170;
+      --accent: #a297e6;
+      --accent-strong: #beb5ee;
+      --accent-ink: #17112c;
+      --accent-soft: #2c2549;
+      --focus: #beb5ee;
+
+      --present-bg: #17301f;
+      --present-fg: #86d99e;
+      --present-strong: #52c97d;
+      --present-border: #234d2e;
+
+      --off-bg: #1b2c3b;
+      --off-fg: #9cc3e6;
+      --off-strong: #6e97bc;
+      --off-border: #2a445c;
+
+      --pending-fg: #a89d89;
+      --pending-border: #45392a;
+
+      --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-2: 0 12px 28px -14px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #17130e;
+    --surface: #211b14;
+    --surface-2: #29221a;
+    --border: #3a3122;
+    --ink: #f1ece1;
+    --muted: #b7ac97;
+    --muted-2: #8c8170;
+    --accent: #a297e6;
+    --accent-strong: #beb5ee;
+    --accent-ink: #17112c;
+    --accent-soft: #2c2549;
+    --focus: #beb5ee;
+
+    --present-bg: #17301f;
+    --present-fg: #86d99e;
+    --present-strong: #52c97d;
+    --present-border: #234d2e;
+
+    --off-bg: #1b2c3b;
+    --off-fg: #9cc3e6;
+    --off-strong: #6e97bc;
+    --off-border: #2a445c;
+
+    --pending-fg: #a89d89;
+    --pending-border: #45392a;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 12px 28px -14px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  .brand-eyebrow {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted-2);
+    margin-bottom: 6px;
+  }
+
+  .home-link {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    text-decoration: none;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+  .home-link:hover { text-decoration: underline; }
+
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 3vw, 27px);
+    margin: 0;
+  }
+
+  .clock-wrap { text-align: right; }
+
+  .clock {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: clamp(22px, 3.6vw, 30px);
+    line-height: 1;
+    color: var(--accent-strong);
+  }
+
+  .clock-date { margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 14px;
+    box-shadow: var(--shadow-1);
+    border-left: 4px solid var(--border);
+  }
+
+  .stat-tile.is-present { border-left-color: var(--present-strong); }
+  .stat-tile.is-off { border-left-color: var(--off-strong); }
+  .stat-tile.is-pending { border-left-color: var(--pending-border); }
+
+  .stat-label { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+
+  .stat-value {
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: clamp(24px, 4vw, 32px);
+    color: var(--ink);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: var(--shadow-1);
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0 0 4px;
+  }
+
+  .section-hint { font-size: 13px; color: var(--muted); margin: 0 0 16px; }
+
+  .self-card { border: 1.5px solid var(--accent); box-shadow: var(--shadow-2); }
+
+  .self-name-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .self-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 20px;
+  }
+
+  .self-updated { font-size: 12.5px; color: var(--muted-2); font-family: var(--font-mono); }
+
+  .change-name-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .toggle-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 10px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    font: inherit;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .toggle-btn:hover { transform: translateY(-1px); }
+  .toggle-btn[data-kind="present"] { color: var(--present-strong); }
+  .toggle-btn[data-kind="off"] { color: var(--off-strong); }
+  .toggle-btn[data-kind="present"][aria-pressed="true"] { background: var(--present-bg); border-color: var(--present-strong); }
+  .toggle-btn[data-kind="off"][aria-pressed="true"] { background: var(--off-bg); border-color: var(--off-strong); }
+
+  .name-form { display: flex; flex-direction: column; gap: 10px; }
+
+  .name-form input[type="text"] {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+  }
+
+  .btn {
+    font: inherit;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    padding: 12px 18px;
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { filter: brightness(1.08); }
+
+  .match-hint {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: none;
+  }
+
+  .match-hint.is-visible { display: block; }
+
+  .match-hint button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--accent-strong);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .roster-group { margin-bottom: 18px; }
+  .roster-group:last-child { margin-bottom: 0; }
+
+  .roster-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14.5px;
+    margin-bottom: 10px;
+  }
+
+  .roster-group-count {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12.5px;
+    color: var(--muted-2);
+  }
+
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .chip {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 9px 13px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    min-width: 92px;
+  }
+
+  .chip.is-present { background: var(--present-bg); border-color: var(--present-border); }
+  .chip.is-off { background: var(--off-bg); border-color: var(--off-border); }
+  .chip.is-pending { background: transparent; border-style: dashed; border-color: var(--pending-border); }
+
+  .chip-name { font-size: 13.5px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+  .chip.is-pending .chip-name { color: var(--pending-fg); font-weight: 500; }
+
+  .chip-time {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted-2);
+  }
+
+  .chip.is-present .chip-time { color: var(--present-fg); opacity: 0.85; }
+  .chip.is-off .chip-time { color: var(--off-fg); opacity: 0.85; }
+
+  .roster-empty { color: var(--muted-2); font-size: 13.5px; padding: 4px 0; }
+
+  .foot-note {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted-2);
+  }
+
+  .sync-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--present-strong);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .sync-dot.offline { background: var(--muted-2); }
+  .sync-dot.connecting { background: var(--muted-2); }
+  .sync-dot.error { background: #b5493b; }
+
+  .name-form input:focus,
+  .toggle-btn:focus-visible,
+  .btn:focus-visible,
+  .change-name-btn:focus-visible {
+    outline: 2.5px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 560px) {
+    .stat-row { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stat-tile { padding: 12px 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-eyebrow">TMCH 看護部</span><br>
+      <a class="home-link" href="index.html">← アプリ一覧へ</a>
+      <h1>師長 出勤状況ボード</h1>
+    </div>
+    <div class="clock-wrap">
+      <div class="clock" id="clock">--:--</div>
+      <div class="clock-date" id="clockDate">----年--月--日(-)</div>
+    </div>
+  </header>
+
+  <div class="stat-row">
+    <div class="stat-tile is-present">
+      <div class="stat-label">出勤</div>
+      <div class="stat-value"><span id="statPresent">0</span></div>
+    </div>
+    <div class="stat-tile is-off">
+      <div class="stat-label">休み</div>
+      <div class="stat-value"><span id="statOff">0</span></div>
+    </div>
+    <div class="stat-tile is-pending">
+      <div class="stat-label">未入力</div>
+      <div class="stat-value"><span id="statPending">0</span></div>
+    </div>
+  </div>
+
+  <section class="card self-card">
+    <div id="nameFormWrap">
+      <h2 class="section-title">はじめに、お名前を入力してください</h2>
+      <p class="section-hint">一度入力すればこの端末で記憶されます（他の人には見えません）。次回からは自動で表示されます。</p>
+      <form class="name-form" id="nameForm">
+        <input type="text" id="nameInput" maxlength="20" placeholder="例）山田 花子" autocomplete="off" required>
+        <div class="match-hint" id="matchHint">
+          同じ名前がすでに登録されています。<button type="button" id="useMatchBtn">この名前として続ける</button>
+        </div>
+        <button type="submit" class="btn btn-primary">登録して始める</button>
+      </form>
+    </div>
+
+    <div id="selfStatusWrap" hidden>
+      <div class="self-name-row">
+        <div>
+          <span class="section-hint" style="margin:0;">あなたの本日の状況</span>
+          <div class="self-name" id="selfName">-</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="self-updated" id="selfUpdated"></div>
+          <button type="button" class="change-name-btn" id="changeNameBtn">名前を変更する</button>
+        </div>
+      </div>
+      <div class="toggle-row" id="toggleRow">
+        <button type="button" class="toggle-btn" data-kind="present" aria-pressed="false">● 出勤</button>
+        <button type="button" class="toggle-btn" data-kind="off" aria-pressed="false">● 休み</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">師長25人の状況</h2>
+    <p class="section-hint">各自が入力した本日の状況が、全員に見えています。</p>
+
+    <div class="roster-group">
+      <div class="roster-group-title" style="color:var(--present-strong);">出勤 <span class="roster-group-count" id="groupPresentCount">0人</span></div>
+      <div class="chip-grid" id="groupPresent"></div>
+      <p class="roster-empty" id="groupPresentEmpty" hidden>まだいません。</p>
+    </div>
+
+    <div class="roster-group">
+      <div class="roster-group-title" style="color:var(--off-strong);">休み <span class="roster-group-count" id="groupOffCount">0人</span></div>
+      <div class="chip-grid" id="groupOff"></div>
+      <p class="roster-empty" id="groupOffEmpty" hidden>まだいません。</p>
+    </div>
+
+    <div class="roster-group">
+      <div class="roster-group-title" style="color:var(--pending-fg);">未入力 <span class="roster-group-count" id="groupPendingCount">0人</span></div>
+      <div class="chip-grid" id="groupPending"></div>
+      <p class="roster-empty" id="groupPendingEmpty" hidden>全員が入力済みです。</p>
+    </div>
+  </section>
+
+  <footer class="foot-note">
+    <span class="sync-dot" id="syncDot"></span><span id="syncState">同期状況を確認中…</span>
+  </footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import {
+    getFirestore, doc, collection, getDoc, setDoc, onSnapshot, query, limit
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyAN1iKGBzu-1tcgJOGee4ePyLVz4_ubz_U",
+    authDomain: "kangobuai.firebaseapp.com",
+    projectId: "kangobuai",
+    storageBucket: "kangobuai.firebasestorage.app",
+    messagingSenderId: "816364571788",
+    appId: "1:816364571788:web:6ca8ebd2822b3031a23fa9",
+    measurementId: "G-Z23VVKNG9Q"
+  };
+
+  var LS_ID_KEY = "nurseAttendanceId";
+  var LS_NAME_KEY = "nurseAttendanceName";
+
+  var els = {
+    clock: document.getElementById("clock"),
+    clockDate: document.getElementById("clockDate"),
+    statPresent: document.getElementById("statPresent"),
+    statOff: document.getElementById("statOff"),
+    statPending: document.getElementById("statPending"),
+    nameFormWrap: document.getElementById("nameFormWrap"),
+    nameForm: document.getElementById("nameForm"),
+    nameInput: document.getElementById("nameInput"),
+    matchHint: document.getElementById("matchHint"),
+    useMatchBtn: document.getElementById("useMatchBtn"),
+    selfStatusWrap: document.getElementById("selfStatusWrap"),
+    selfName: document.getElementById("selfName"),
+    selfUpdated: document.getElementById("selfUpdated"),
+    changeNameBtn: document.getElementById("changeNameBtn"),
+    toggleRow: document.getElementById("toggleRow"),
+    groupPresent: document.getElementById("groupPresent"),
+    groupPresentCount: document.getElementById("groupPresentCount"),
+    groupPresentEmpty: document.getElementById("groupPresentEmpty"),
+    groupOff: document.getElementById("groupOff"),
+    groupOffCount: document.getElementById("groupOffCount"),
+    groupOffEmpty: document.getElementById("groupOffEmpty"),
+    groupPending: document.getElementById("groupPending"),
+    groupPendingCount: document.getElementById("groupPendingCount"),
+    groupPendingEmpty: document.getElementById("groupPendingEmpty"),
+    syncDot: document.getElementById("syncDot"),
+    syncState: document.getElementById("syncState")
+  };
+
+  var dbFs = null;
+  var attendanceCol = null;
+  var dbReady = false;
+  var myId = null;
+  var myName = null;
+  var pendingMatchId = null;
+  var roster = [];
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function todayString(d) {
+    d = d || new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function timeOnly(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function tickClock() {
+    var now = new Date();
+    els.clock.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes());
+    var days = ["日", "月", "火", "水", "木", "金", "土"];
+    els.clockDate.textContent = now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日(" + days[now.getDay()] + ")";
+  }
+
+  function setSync(kind, text) {
+    els.syncDot.className = "sync-dot" + (kind === "offline" ? " offline" : kind === "error" ? " error" : kind === "connecting" ? " connecting" : "");
+    els.syncState.textContent = text;
+  }
+
+  function effectiveStatus(doc) {
+    if (!doc) return "pending";
+    if (doc.date !== todayString()) return "pending";
+    if (doc.status === "present" || doc.status === "off") return doc.status;
+    return "pending";
+  }
+
+  function makeChip(entry, state) {
+    var chip = document.createElement("div");
+    chip.className = "chip is-" + state;
+    var name = document.createElement("div");
+    name.className = "chip-name";
+    name.textContent = entry.name || "名称未設定";
+    chip.appendChild(name);
+    if (state !== "pending" && entry.updatedAt) {
+      var time = document.createElement("div");
+      time.className = "chip-time";
+      time.textContent = timeOnly(entry.updatedAt) + " 更新";
+      chip.appendChild(time);
+    }
+    return chip;
+  }
+
+  function renderRoster() {
+    var present = [];
+    var off = [];
+    var pending = [];
+
+    roster.forEach(function (entry) {
+      var state = effectiveStatus(entry);
+      if (state === "present") present.push(entry);
+      else if (state === "off") off.push(entry);
+      else pending.push(entry);
+    });
+
+    var collate = function (a, b) { return (a.name || "").localeCompare(b.name || "", "ja"); };
+    present.sort(collate);
+    off.sort(collate);
+    pending.sort(collate);
+
+    els.statPresent.textContent = present.length;
+    els.statOff.textContent = off.length;
+    els.statPending.textContent = pending.length;
+
+    function fillGroup(container, emptyEl, countEl, list, state) {
+      container.innerHTML = "";
+      list.forEach(function (entry) { container.appendChild(makeChip(entry, state)); });
+      emptyEl.hidden = list.length > 0;
+      countEl.textContent = list.length + "人";
+    }
+
+    fillGroup(els.groupPresent, els.groupPresentEmpty, els.groupPresentCount, present, "present");
+    fillGroup(els.groupOff, els.groupOffEmpty, els.groupOffCount, off, "off");
+    fillGroup(els.groupPending, els.groupPendingEmpty, els.groupPendingCount, pending, "pending");
+  }
+
+  function renderSelf() {
+    var mine = roster.find(function (d) { return d.id === myId; });
+    var state = effectiveStatus(mine);
+
+    els.selfName.textContent = myName || "-";
+    els.selfUpdated.textContent = mine && mine.updatedAt && state !== "pending" ? timeOnly(mine.updatedAt) + " 更新" : "本日はまだ未入力です";
+
+    els.toggleRow.querySelectorAll(".toggle-btn").forEach(function (btn) {
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-kind") === state ? "true" : "false");
+    });
+  }
+
+  function showSelfWidget() {
+    els.nameFormWrap.hidden = true;
+    els.selfStatusWrap.hidden = false;
+    renderSelf();
+  }
+
+  function showNameForm() {
+    els.selfStatusWrap.hidden = true;
+    els.nameFormWrap.hidden = false;
+    els.nameInput.value = "";
+    els.matchHint.classList.remove("is-visible");
+    pendingMatchId = null;
+  }
+
+  function writeMyStatus(status) {
+    if (!myId) return;
+    var payload = { name: myName, status: status, date: todayString(), updatedAt: new Date().toISOString() };
+    if (dbReady && attendanceCol) {
+      setDoc(doc(attendanceCol, myId), payload).catch(function (e) {
+        console.error(e);
+        setSync("error", "更新に失敗しました。もう一度お試しください");
+      });
+    } else {
+      var idx = roster.findIndex(function (d) { return d.id === myId; });
+      var withId = Object.assign({ id: myId }, payload);
+      if (idx >= 0) roster[idx] = withId; else roster.push(withId);
+      renderRoster();
+      renderSelf();
+    }
+  }
+
+  function registerName(name, existingId) {
+    myName = name;
+    if (existingId) {
+      myId = existingId;
+    } else if (dbReady && attendanceCol) {
+      myId = doc(attendanceCol).id;
+    } else {
+      myId = "local-" + Date.now();
+    }
+    try {
+      localStorage.setItem(LS_ID_KEY, myId);
+      localStorage.setItem(LS_NAME_KEY, myName);
+    } catch (e) { /* private browsing etc. - continue without persistence */ }
+
+    if (dbReady && attendanceCol) {
+      getDoc(doc(attendanceCol, myId)).then(function (snap) {
+        if (!snap.exists()) {
+          setDoc(doc(attendanceCol, myId), { name: myName, status: null, date: "", updatedAt: null }).catch(function (e) { console.error(e); });
+        }
+      }).catch(function (e) { console.error(e); });
+    } else {
+      if (!roster.find(function (d) { return d.id === myId; })) {
+        roster.push({ id: myId, name: myName, status: null, date: "", updatedAt: null });
+      }
+    }
+    showSelfWidget();
+  }
+
+  els.nameForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = els.nameInput.value.trim();
+    if (!name) return;
+
+    if (pendingMatchId) {
+      var match = roster.find(function (d) { return d.id === pendingMatchId; });
+      registerName(match ? match.name : name, pendingMatchId);
+      return;
+    }
+
+    var existing = roster.find(function (d) { return (d.name || "").trim() === name; });
+    if (existing && existing.id !== myId) {
+      pendingMatchId = existing.id;
+      els.matchHint.classList.add("is-visible");
+      return;
+    }
+    registerName(name, null);
+  });
+
+  els.nameInput.addEventListener("input", function () {
+    pendingMatchId = null;
+    els.matchHint.classList.remove("is-visible");
+  });
+
+  els.useMatchBtn.addEventListener("click", function () {
+    if (!pendingMatchId) return;
+    var match = roster.find(function (d) { return d.id === pendingMatchId; });
+    registerName(match ? match.name : els.nameInput.value.trim(), pendingMatchId);
+  });
+
+  els.changeNameBtn.addEventListener("click", function () {
+    try {
+      localStorage.removeItem(LS_ID_KEY);
+      localStorage.removeItem(LS_NAME_KEY);
+    } catch (e) { /* ignore */ }
+    myId = null;
+    myName = null;
+    showNameForm();
+  });
+
+  els.toggleRow.addEventListener("click", function (e) {
+    var btn = e.target.closest(".toggle-btn");
+    if (!btn || !myId) return;
+    writeMyStatus(btn.getAttribute("data-kind"));
+  });
+
+  tickClock();
+  setInterval(tickClock, 1000);
+  setInterval(function () { renderRoster(); renderSelf(); }, 30000);
+
+  try {
+    myId = localStorage.getItem(LS_ID_KEY);
+    myName = localStorage.getItem(LS_NAME_KEY);
+  } catch (e) { /* ignore */ }
+
+  if (myId && myName) {
+    showSelfWidget();
+  } else {
+    showNameForm();
+  }
+
+  setSync("connecting", "接続しています…");
+  renderRoster();
+
+  try {
+    var app = initializeApp(firebaseConfig);
+    var auth = getAuth(app);
+    dbFs = getFirestore(app);
+
+    signInAnonymously(auth).then(function () {
+      attendanceCol = collection(dbFs, "attendance");
+      dbReady = true;
+      setSync("online", "リアルタイムで同期しています");
+
+      var rosterQuery = query(attendanceCol, limit(200));
+      onSnapshot(rosterQuery, function (snap) {
+        roster = snap.docs.map(function (d) {
+          var data = d.data() || {};
+          return {
+            id: d.id,
+            name: data.name || "",
+            status: data.status || null,
+            date: data.date || "",
+            updatedAt: data.updatedAt || null
+          };
+        });
+        renderRoster();
+        renderSelf();
+      }, function (err) {
+        console.error(err);
+        setSync("error", "同期エラーが発生しました");
+      });
+
+      if (myId && myName && !roster.find(function (d) { return d.id === myId; })) {
+        getDoc(doc(attendanceCol, myId)).then(function (snap) {
+          if (!snap.exists()) {
+            setDoc(doc(attendanceCol, myId), { name: myName, status: null, date: "", updatedAt: null }).catch(function (e) { console.error(e); });
+          }
+        }).catch(function (e) { console.error(e); });
+      }
+    }).catch(function (e) {
+      console.error(e);
+      setSync("offline", "この画面では自動同期できません（表示のみ）");
+    });
+  } catch (e) {
+    console.error(e);
+    setSync("offline", "この画面では自動同期できません（表示のみ）");
+  }
+</script>
+</body>
+</html>
