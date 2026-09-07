@@ -511,7 +511,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
   import {
-    getFirestore, doc, collection, getDoc, setDoc, onSnapshot, query, limit
+    getFirestore, doc, collection, getDoc, getDocs, setDoc, onSnapshot, query, limit
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
   var firebaseConfig = {
@@ -715,6 +715,37 @@
     }
     showSelfWidget();
   }
+
+  function refreshNow() {
+    if (!dbReady || !attendanceCol) return;
+    setSync("connecting", "最新の状況を確認しています…");
+    getDocs(query(attendanceCol, limit(200))).then(function (snap) {
+      roster = snap.docs.map(function (d) {
+        var data = d.data() || {};
+        return {
+          id: d.id,
+          name: data.name || "",
+          status: data.status || null,
+          date: data.date || "",
+          updatedAt: data.updatedAt || null
+        };
+      });
+      renderRoster();
+      renderSelf();
+      setSync("online", "リアルタイムで同期しています");
+    }).catch(function (e) {
+      console.error(e);
+      setSync("error", "同期エラーが発生しました");
+    });
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") refreshNow();
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) refreshNow();
+  });
+  window.addEventListener("focus", refreshNow);
 
   els.nameForm.addEventListener("submit", function (e) {
     e.preventDefault();

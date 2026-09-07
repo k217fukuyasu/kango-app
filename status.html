@@ -693,7 +693,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
   import {
-    getFirestore, doc, collection, onSnapshot, setDoc, addDoc, deleteDoc, query, orderBy, limit
+    getFirestore, doc, collection, getDoc, getDocs, onSnapshot, setDoc, addDoc, deleteDoc, query, orderBy, limit
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
   var firebaseConfig = {
@@ -925,6 +925,43 @@
       renderQueue();
     }
   }
+
+  function refreshNow() {
+    if (!dbReady || !statusDocRef || !queueColRef) return;
+    setSync("connecting", "最新の状況を確認しています…");
+    var statusPromise = getDoc(statusDocRef).then(function (snap) {
+      if (snap.exists()) {
+        var data = snap.data() || {};
+        currentStatus = {
+          state: data.state || "present",
+          note: typeof data.note === "string" ? data.note : "",
+          updatedAt: data.updatedAt || currentStatus.updatedAt
+        };
+      }
+      renderStatus();
+    });
+    var queuePromise = getDocs(query(queueColRef, orderBy("requestedAt", "asc"), limit(50))).then(function (snap) {
+      queueItems = snap.docs.map(function (d) {
+        var data = d.data() || {};
+        return { id: d.id, name: data.name || "", topic: data.topic || "", requestedAt: data.requestedAt || null };
+      });
+      renderQueue();
+    });
+    Promise.all([statusPromise, queuePromise]).then(function () {
+      setSync("online", "リアルタイムで同期しています");
+    }).catch(function (e) {
+      console.error(e);
+      setSync("error", "同期エラーが発生しました");
+    });
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") refreshNow();
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) refreshNow();
+  });
+  window.addEventListener("focus", refreshNow);
 
   els.statusGrid.addEventListener("click", function (e) {
     var btn = e.target.closest(".status-btn");
